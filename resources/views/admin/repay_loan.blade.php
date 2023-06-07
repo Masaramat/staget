@@ -37,6 +37,7 @@
                         <th class="pt-0">Loan Balance</th>
                         <th class="pt-0">Loan year</th>
                         <th class="pt-0">Repayment</th>
+                        <th class="pt-0">Repayment type</th>
                         <th class="pt-0">Options</th>
                       </tr>
                     </thead>
@@ -50,10 +51,12 @@
                         <td class="border-bottom">{{ $loan->balance }}</td>
                         <td class="border-bottom">{{ $loan->year }}</td>
                         <td class="border-bottom">{{ $loan->installments }}</td>
+                        <td class="border-bottom">{{ $loan->repayment_type }}</td>
                         <td class="border-bottom"> 
                             <form method="post" action="{{ route('loan.remove_loan') }}">
                               @csrf
                               <input type="hidden" name="loan" value="{{ $index }}">
+                              <input type="hidden" name="id" value="{{ $loan->id }}">
                               <button type="submit" name="delete">Delete</button>
                             </form>
                         </td>

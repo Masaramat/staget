@@ -106,8 +106,7 @@ class LoanController extends Controller
                 'tenor_approved' => 'required|string'
             ]);
 
-            $loan->fill($data);
-            $loan->balance = $request->amount_approved;
+            $loan->fill($data);            
             $loan->application_status = 'open';
             $interest_type = $year_plan->interest_type;
 
@@ -119,17 +118,21 @@ class LoanController extends Controller
 
             if($loan->repayment_type == 'balloon upfront interest'){                
                 $loan->installments = $request->amount_approved;
+                $loan->balance = $request->amount_approved;
                 $loan->interest_paid = $interest;
             }else if($loan->repayment_type == 'flat upfront interest'){
                 $loan->installments = $request->amount_approved / $request->tenor_approved;
+                $loan->balance = $request->amount_approved;
                 $loan->interest_paid = $interest;
             }else if($loan->repayment_type == 'flat'){
                 $loan->installments = ($request->amount_approved / $request->tenor_approved) + ($interest/$request->tenor_approved);
                 $loan->interest_paid = 0;
+                $loan->balance = $request->amount_approved + $interest;
 
             }else if($loan->repayment_type == 'balloon'){
                 $loan->installments =  $interest/$request->tenor_approved;
                 $loan->interest_paid = 0;
+                $loan->balance = $request->amount_approved + $interest;
             }
             $year_plan->year_interest = $year_plan->year_interest + $loan->interest_paid;
 
@@ -154,25 +157,30 @@ class LoanController extends Controller
     }
 
     public function OpenLoanRepayment(){
-         $loans = DB::table('loan_applications')
-            ->join('users', function ($join) {
-                $join->on('users.id', '=', 'loan_applications.user_id')
-                    ->where('loan_applications.application_status', 'open')
-                    ->where(function ($query) {
-                        $query->where('loan_applications.repayment_type', 'flat')
-                            ->orWhere(function ($query) {
-                                $query->where('loan_applications.repayment_type', 'balloon')
-                                    ->where('loan_applications.maturity', '<=', Carbon::now());
-                            });
-                    });
-            })
-            ->join('year_plans', 'year_plans.id', '=', 'loan_applications.year_id')
-            ->select('loan_applications.*', 'users.name', 'year_plans.year')
-            ->get();
+        $loans = DB::table('loan_applications')
+        ->join('users', function ($join) {
+            $join->on('users.id', '=', 'loan_applications.user_id')
+                ->where('loan_applications.application_status', 'open')
+                ->where(function ($query) {
+                    $query->where('loan_applications.repayment_type', 'flat')
+                        ->orWhere('loan_applications.repayment_type', 'flat upfront interest')
+                        ->orWhere('loan_applications.repayment_type', 'balloon')
+                        ->orWhere(function ($query) {
+                            $query->where('loan_applications.repayment_type', 'balloon upfront interest')
+                                ->where('loan_applications.maturity', '<=', Carbon::now());
+                        });
+                });
+        })    
+        ->join('year_plans', 'year_plans.id', '=', 'loan_applications.year_id')
+        ->select('loan_applications.*', 'users.name', 'year_plans.year')
+        ->get();
 
         $xy = 1;
 
         foreach($loans as $loan){
+            if(($loan->maturity <= Carbon::now()) && ($loan->repayment_type === 'balloon')){
+                $loan->installments = $loan->balance;
+            }
             session()->push('loan_details', $loan);
         }
 
@@ -182,7 +190,9 @@ class LoanController extends Controller
     public function RemoveLoan(Request $request){
         $loans = session()->pull('loan_details', []); // Second argument is a default value       
         unset($loans[$request->loan]);
-      
+
+        $loanRemoved = LoanApplication::where('id', $request->id)->get();
+        session()->push('removed_loan', $loanRemoved);      
         session()->put('loan_details', $loans);
         $loans = session()->pull('loan_details', []);
         $users = User::all();
