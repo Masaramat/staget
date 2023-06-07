@@ -20,7 +20,7 @@ class LoanController extends Controller
     public function LoanApplication(){
         $year_plan = YearPlan::where('status', '=', 'open')->first();
         $account = Account::where('user_id', '=', Auth::user()->id)->first();
-        $loan = LoanApplication::where('user_id', Auth::user()->id)->where('application_status', 'NOT', 'close');
+        $loan = LoanApplication::where('user_id', Auth::user()->id)->where('application_status', 'pending')->orWhere('application_status', 'open')->get(); 
         if($loan->count()>=1){
             $notification = array(
                 'message' => 'You have an openned loan',
@@ -109,13 +109,28 @@ class LoanController extends Controller
             $loan->fill($data);
             $loan->balance = $request->amount_approved;
             $loan->application_status = 'open';
-            if($loan->repayment_type == 'balloon'){
-                $loan->installments = $request->amount_approved;
-            }else if($loan->repayment_type == 'flat'){
-                $loan->installments = $request->amount_approved / $request->tenor_approved;
+            $interest_type = $year_plan->interest_type;
+
+            if($interest_type === 'monthly'){
+                $interest = $request->amount_approved * ($year_plan->interest_rate/100) * $request->tenor_approved;
+            }else if($interest_type === 'one_off'){
+                $interest = $request->amount_approved * ($year_plan->interest_rate/100);
             }
-           
-            $loan->interest_paid = $request->amount_approved * ($year_plan->interest_rate/100) * $request->tenor_approved;
+
+            if($loan->repayment_type == 'balloon upfront interest'){                
+                $loan->installments = $request->amount_approved;
+                $loan->interest_paid = $interest;
+            }else if($loan->repayment_type == 'flat upfront interest'){
+                $loan->installments = $request->amount_approved / $request->tenor_approved;
+                $loan->interest_paid = $interest;
+            }else if($loan->repayment_type == 'flat'){
+                $loan->installments = ($request->amount_approved / $request->tenor_approved) + ($interest/$request->tenor_approved);
+                $loan->interest_paid = 0;
+
+            }else if($loan->repayment_type == 'balloon'){
+                $loan->installments =  $interest/$request->tenor_approved;
+                $loan->interest_paid = 0;
+            }
             $year_plan->year_interest = $year_plan->year_interest + $loan->interest_paid;
 
             $maturity_date = Carbon::parse(date(now()))->addMinutes($request->tenor_approved);

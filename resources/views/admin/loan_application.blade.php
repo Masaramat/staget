@@ -48,7 +48,9 @@
                 <div class="form-group mt-2">
                     <label for="repayment_type" class="form-label">Repayment type</label>
                     <select oninput="this.className = 'form-control form-select'" type="text" name="repayment_type" class="form-control form-select" id="repayment_type" autocomplete="off" value="{{ $user->repayment_type ?? '' }}">
+                        <option value="flat upfront interest">Flat upfront interest</option>                       
                         <option value="flat">Flat</option>
+                        <option value="balloon upfront interest">Balloon upfront interest</option>
                         <option value="balloon">Balloon</option>
                     </select>
                 </div>

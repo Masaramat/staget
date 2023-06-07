@@ -27,6 +27,15 @@
                     <label for="interest_rate" class="form-label">Interest rate (Percentage)</label>
                     <input type="text" name="interest_rate" class="form-control" id="interest_rate" autocomplete="off" >
                   </div>
+                  <div class="mb-3">
+                    <label for="interest_type" class="form-label">Interest type</label>
+                    <select type="text" name="interest_type" class="form-control form-select" id="interest_type" autocomplete="off" >
+                      <option value="">Select</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="one_off">One-off</option>
+
+                    </select>
+                  </div>
                   
                   <button type="submit" class="btn btn-primary me-2">Save Changes</button>
                   

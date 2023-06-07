@@ -202,6 +202,7 @@ class AdminController extends Controller
         $year->min_savings = $request->min_savings;
         $year->loan_percentage = $request->loan_percentage;
         $year->interest_rate = $request->interest_rate;
+        $year->interest_type = $request->interest_type;
 
         $year->save();
 
