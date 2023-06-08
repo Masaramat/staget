@@ -188,26 +188,43 @@ class LoanController extends Controller
     }
 
     public function RemoveLoan(Request $request){
-        $loans = session()->pull('loan_details', []); // Second argument is a default value       
+        $loans = session()->pull('loan_details', []); // Second argument is a default value  
+        $removed_loans = session()->pull('removed_loans', []);
+        $loanRemoved = LoanApplication::where('id', $request->id)->get();
+
+        array_push($removed_loans, $loanRemoved);
         unset($loans[$request->loan]);
 
-        $loanRemoved = LoanApplication::where('id', $request->id)->get();
-        session()->push('removed_loan', $loanRemoved);      
+        
+        session()->put('removed_loans', $removed_loans);      
         session()->put('loan_details', $loans);
         $loans = session()->pull('loan_details', []);
+        $removed_loans = session()->pull('removed_loans', []);
         $users = User::all();
         $xy = 1;
         
-        return view('admin.repay_loan', compact('loans', 'xy'));
+        return view('admin.repay_loan', compact('loans', 'xy', 'removed_loans'));
     }
 
     public function CompletePayment(){
-        $loans = session()->pull('loan_details', []); // Second argument is a default value       
-        $year_plan = YearPlan::where('status', '=', 'open')->first(); 
+        $loans = session()->pull('loan_details', []); // Second argument is a default value  
+        $removed_loans = session()->pull('removed_loans', []); 
+        // fix me first
+        foreach($removed_loans as $removed_loan){
+            $loan_year_plan = YearPlan::where('id', $removed_loan->id);
+            if($loan_year_plan->interest_type == 'monthly'){
+                $loan_removed = LoanApplication::where('id', $removed_loan->id)->first();
+                $loan_removed->tenor = $loan_removed->tenor + 1;
+                $loan_removed->balance = $loan_removed->balance + $loan_removed->amount_approved * ($loan_year_plan->interest_rate/100);
+                $loan_removed->save();
+            }
+        }
+        
                
-
+        $year_plan = YearPlan::where('status', '=', 'open')->first();
         foreach ($loans as $loan) {
             $user_loan = LoanApplication::where('id', '=', $loan->id)->first(); // Use "first()" instead of "find()" to retrieve a single instance
+            
             $user_loan->balance = $user_loan->balance - $loan->installments;            
             $repayment = array(
                 'loan_id' => $loan->id,
