@@ -28,6 +28,14 @@
                     <input type="text" name="interest_rate" class="form-control" id="interest_rate" autocomplete="off" >
                   </div>
                   <div class="mb-3">
+                    <label for="external_interest" class="form-label">External interest rate (Percentage)</label>
+                    <input type="text" name="external_interest" class="form-control" id="external_interest" autocomplete="off" >
+                  </div>
+                  <div class="mb-3">
+                    <label for="external_commission" class="form-label">External interest commision rate (Percentage)</label>
+                    <input type="text" name="external_commission" class="form-control" id="external_commission" autocomplete="off" >
+                  </div>
+                  <div class="mb-3">
                     <label for="interest_type" class="form-label">Interest type</label>
                     <select type="text" name="interest_type" class="form-control form-select" id="interest_type" autocomplete="off" >
                       <option value="">Select</option>

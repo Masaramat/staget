@@ -21,7 +21,7 @@ return new class extends Migration
              $table->integer('tenor');
              $table->integer('tenor_approved');
              $table->string('tenor_type');
-             $table->emum('repayment_type', ['flat upfront interest', 'flat', 'balloon upfront interest', 'balloon']);
+             $table->enum('repayment_type', ['flat upfront interest', 'flat', 'balloon upfront interest', 'balloon']);
              $table->double('installments')->default(0.00);
              $table->double('interest_paid')->default(0.00);
              $table->timestamp('maturity');

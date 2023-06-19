@@ -15,7 +15,7 @@
             
             <button type="button" class="btn btn-primary btn-icon-text mb-2 mb-md-0">
               <i class="btn-icon-prepend" data-feather="calendar"></i>
-              Year plan: {{ $dashboard_info['year_plan'][0]->year }} ({{ $dashboard_info['year_plan'][0]->status }})
+              Year plan: {{ $dashboard_info['year_plan'][0]->year ?? 'No Year Opened' }} ({{ $dashboard_info['year_plan'][0]->status ?? "" }})
             </button>
           </div>
         </div>
@@ -43,7 +43,8 @@
                     </div>
                     <div class="row">
                       <div class="col-12 col-md-12 col-xl-12">
-                        <h3 class="mb-2">NGN {{ number_format($dashboard_info['total_savings'], 2, '.', ',') }}</h3>
+                        <h3 class="mb-2">NGN {{ number_format($dashboard_info['total_savings']->total_asset ?? 0, 2, '.', ',') }}</h3>
+                        <p> <sup>Members: {{$dashboard_info['users']}}</sup></p>
                         
                       </div>
                       <div class="col-12 col-md-12 col-xl-12">                        
@@ -115,7 +116,7 @@
                     </div>
                     <div class="row">
                       <div class="col-12 col-md-12 col-xl-12">
-                        <h3 class="mb-2">NGN {{ number_format($dashboard_info['year_plan'][0]->year_interest, 2, '.', ',') }}</h3><p> <sup>Liability: NGN {{number_format($dashboard_info['total_liability'], 2)}}</sup></p>
+                        <h3 class="mb-2">NGN {{ number_format($dashboard_info['year_plan'][0]->year_interest ?? 0, 2, '.', ',') }}</h3><p> <sup>Liability: NGN {{number_format($dashboard_info['total_liability'], 2)}}</sup></p>
                         
                       </div>
                       <div class="col-12 col-md-12 col-xl-12">
@@ -159,7 +160,7 @@
                     </div>
                     <div class="row">
                       <div class="col-12 col-md-12 col-xl-12">
-                        <h3 class="mb-2">NGN {{ number_format($dashboard_info['ind_total_asset'], 2, '.', ',') }} </h3><p> <sup>Stake: {{number_format($dashboard_info['stake'], 2)}}%</sup></p>
+                        <h3 class="mb-2">NGN {{ number_format($dashboard_info['ind_total_asset'], 2, '.', ',') }} </h3><p> <sup>Stake: {{number_format($dashboard_info['total_stake'], 2)}}%</sup></p>
                         
                       </div>
                       <div class="col-12 col-md-12 col-xl-12">                        
@@ -199,6 +200,10 @@
                         
                       </div>
                       <div class="col-12 col-md-12 col-xl-12">
+                        <p> <sup>Stake: {{number_format($dashboard_info['stake'], 2)}}%</sup></p>
+                        
+                      </div>
+                      <div class="col-12 col-md-12 col-xl-12">
                         <div id="indYearSavingsChart" class="mt-md-3 mt-xl-0"></div>
                         <div class="d-flex align-items-baseline">
                           <p class="text-danger">
@@ -231,7 +236,7 @@
                     </div>
                     <div class="row">
                       <div class="col-12 col-md-12 col-xl-12">
-                        <h3 class="mb-2">NGN {{ number_format($dashboard_info['year_plan'][0]->year_interest, 2, '.', ',') }}</h3>
+                        <h3 class="mb-2">NGN {{ number_format($dashboard_info['year_plan'][0]->year_interest ?? 0, 2, '.', ',') }}</h3>
                         
                       </div>
                       <div class="col-12 col-md-12 col-xl-12">
@@ -348,5 +353,7 @@
 			</div>
       <div id="depositsYears" data-years="{{ json_encode($dashboard_info['years'])}}"></div>
       <div id="depositsData" data-deposits="{{ json_encode($dashboard_info['deposits'])}}"></div>
+
+     
 
 @endsection

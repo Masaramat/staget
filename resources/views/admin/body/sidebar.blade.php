@@ -1,7 +1,7 @@
 <nav class="sidebar">
       <div class="sidebar-header">
         <a href="#" class="sidebar-brand">
-          Noble<span>UI</span>
+          STA<span>get</span>
         </a>
         <div class="sidebar-toggler not-active">
           <span></span>
@@ -55,7 +55,7 @@
                   <a href="{{ route('admin.users') }}" class="nav-link">view</a>
                 </li>
                 <li class="nav-item">
-                  <a href="pages/ui-components/alerts.html" class="nav-link">Alerts</a>
+                  <a href="" data-bs-toggle="modal" data-bs-target="#disableUserModal" class="nav-link">Disable user</a>
                 </li>
                 
               </ul>
@@ -90,11 +90,22 @@
                   <a href="{{ route('loan.apply') }}" class="nav-link">Apply Loan</a>
                 </li>
                 <li class="nav-item">
+                  <a href="" data-bs-toggle="modal" data-bs-target="#externalLoanModal" class="nav-link">Create external loan</a>
+                </li>
+                 <li class="nav-item">
+                  <a href="{{ route('loan.external.approval') }}" class="nav-link">Approve external loans</a>
+                </li>
+                <li class="nav-item">
                   <a href="{{ route('loan.approve_loan') }}" class="nav-link">Approve Loans</a>
+                </li>
+
+                <li class="nav-item">
+                  <a href="{{ route('loan.external.repayment') }}" class="nav-link">External loan repayment</a>
                 </li>
                 <li class="nav-item">
                   <a href="{{ route('loan.approve_loan') }}" class="nav-link">Close Loan</a>
                 </li>
+                
                 <li class="nav-item">
                   <a href="{{ route('admin.loan.repayment') }}" class="nav-link">Repayment</a>
                 </li>
@@ -134,3 +145,47 @@
         </ul>
       </div>
     </nav>
+
+
+     <!-- Modal -->
+    <div class="modal fade" id="externalLoanModal" tabindex="-1" aria-labelledby="externalLoanModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="{{ route('loan.external') }}">
+                     @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="approveLoanModalLabel">Create external loan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="btn-close"></button>
+                    </div>
+                    <div class="modal-body">
+                        
+                       <p class="text-light mb-2 mt-2">Select the user that quarantees the borrower</p>
+                        <div class="form-group mb-3">
+                            <label>Quarantor</label>
+                            <select class="form-control form-select" name="guarantor">
+                              <option value="">Select</option>
+                              @foreach(App\Models\User::where('status', 'active')->get() as $user)
+                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+
+                              @endforeach
+                            </select>
+                        </div>
+                       
+                    </div>
+                    <div class="modal-footer">
+                        <input name="id" type="hidden" id="id">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                       
+                        <button type="submit" class="btn btn-success">Proceed to loan creation</button>
+                        
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div> <!-- end of modal -->
+
+    
+
+
+     

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\ExternalLoanController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\LoanController;
 
@@ -63,12 +64,18 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     // Post page three data
     Route::post('admin/registeruser/post/three', [RegisteredUserController::class, 'CreateThree'])->name('admin.registeruser.post.three');
 
-    // Post page three data
+    // Post page two data
+   
+
+   
     Route::post('admin/user/view', [AdminController::class, 'ViewUser'])->name('admin.user.view');
+
+    Route::post('admin/user/disable', [AdminController::class, 'DisableUser'])->name('admin.user.disable');
 
     // Admin users depodits
     Route::get('admin/user/deposit', [PaymentController::class, 'Deposit'])->name('admin.user.deposit');
-
+    
+    Route::post('admin/user/update', [RegisteredUserController::class, 'UpdateUser'])->name('admin.user.update');
 
     Route::post('admin/user/remove_payer', [PaymentController::class, 'RemoveUserPayment'])->name('admin.user.remove_payer');
 
@@ -96,6 +103,17 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     Route::post('loan/remove_loan', [LoanController::class, 'RemoveLoan'])->name('loan.remove_loan');
 
     Route::get('loan/complete_repayment', [LoanController::class, 'CompletePayment'])->name('loan.complete_repayment');
+    
+    //external loan (secretary and admin)
+    Route::post('loan/external', [ExternalLoanController::class, 'Create'])->name('loan.external');
+    Route::post('loan/external/apply', [ExternalLoanController::class, 'Apply'])->name('loan.external.apply');
+    Route::get('loan/external/approval', [ExternalLoanController::class, 'OpenApproval'])->name('loan.external.approval');
+
+     Route::post('loan/external/approve', [ExternalLoanController::class, 'ApproveLoan'])->name('loan.external.approve');
+
+     Route::get('loan/external/repayment', [ExternalLoanController::class, 'Repayment'])->name('loan.external.repayment');
+
+     Route::get('loan/external/complete_repayment', [ExternalLoanController::class, 'CompletePayment'])->name('loan.external.complete_repayment');
 
     
     

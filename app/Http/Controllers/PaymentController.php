@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use App\Models\Deposit;
+use App\Models\StagetAccount;
 use App\Models\User;
 use App\Models\YearPlan;
 use Illuminate\Database\Query\JoinClause;
@@ -63,6 +64,7 @@ class PaymentController extends Controller
         $payers = session()->pull('payers_details', []);
         $year_plan = YearPlan::where('status', '=', 'open')->first();
         $deposits = array();
+        $sum = 0;
 
         foreach ($payers as $payer) {
             $user_account = Account::where('user_id', '=', $payer->id)->first(); // Use "first()" instead of "find()" to retrieve a single instance
@@ -71,6 +73,7 @@ class PaymentController extends Controller
                 'amount' => $payer->monthly_savings,
                 'year_id' => $year_plan->id
             );
+            $sum = $sum + $payer->monthly_savings;
 
             array_push($deposits, $deposit);
             
@@ -80,6 +83,10 @@ class PaymentController extends Controller
                 $user_account->save();
             }
         }
+
+        $acct = StagetAccount::where('year_id', $year_plan->id)->first();
+        $acct->total_asset = $acct->total_asset + $sum;
+        $acct->save();        
 
         Deposit::insert($deposits);
 

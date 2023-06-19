@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 use App\Models\Account;
 use App\Models\Deposit;
+use App\Models\ExternalLoan;
 use App\Models\LoanApplication;
+use App\Models\StagetAccount;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,20 +18,51 @@ use Illuminate\Support\Facades\Hash;
 class AdminController extends Controller
 {
     public function AdminDashboard(){
-        $year_plan = YearPlan::latest()->get();        
+        $year_plan = YearPlan::latest()->get(); 
+         $users = User::where('status', 'active')->count();
+        
+        if(count($year_plan) > 0 ){
+            $total_savings = StagetAccount::where('year_id', $year_plan[0]->id)->first();
+            $year_savings = DB::table('deposits')->where('year_id', $year_plan[0]->id)->sum('amount');
+            $ind_year_savings = DB::table('deposits')->where('year_id', $year_plan[0]->id)->where('user_id', Auth::user()->id)->sum('amount');
+            $total_liability = DB::table('liabilities')->where('year_id', $year_plan[0]->id)->sum('cost');
+            
+            $ind_total_asset = Account::where('user_id', Auth::user()->id)->first();
+           
 
-        $total_savings = Account::join('users', 'users.id', '=', 'accounts.user_id')
-            ->where('users.status', 'active')
-            ->sum('accounts.total_savings');
-        $year_savings = DB::table('deposits')->where('year_id', $year_plan[0]->id)->sum('amount');
-        $ind_year_savings = DB::table('deposits')->where('year_id', $year_plan[0]->id)->where('user_id', Auth::user()->id)->sum('amount');
-        $total_liability = DB::table('liabilities')->where('year_id', $year_plan[0]->id)->sum('cost');
+            $total_asset = $total_savings->total_asset;
+            $stake = 0.00;
+            $total_stake = 0.00;
+
+            if ($total_asset != 0) {
+                $total_stake = 100 / $total_asset; //fix me soon or else
+            } else {
+                // Handle the case where $total_asset is zero to avoid division by zero error
+            }
+            if($year_savings != 0){
+                $stake = 100/$year_savings * $ind_year_savings;
+            }
+            
+            $total_ind_asset = $ind_total_asset->total_savings ?? 0.00;
+            
+        }else{
+            $total_savings = 0;
+            $year_savings = 0;
+            $ind_year_savings= 0;
+            $total_liability = 0;
+            $ind_total_asset = 0;
+            $total_asset = 0;
+            $total_ind_asset= 0;
+            $stake = 0;
+            $total_stake = 0;
+            $year_plan = new YearPlan();
+            $year_plan->year = 2023;
+
+        }
+
+         
 
         
-        $ind_total_asset = Account::where('user_id', Auth::user()->id)->first();
-        $users = User::where('status', 'active')->get();
-
-        $stake = 100/$total_savings * $ind_total_asset->total_savings;
 
         $loans = LoanApplication::join('users', 'users.id', '=', 'loan_applications.user_id')
             ->get(['loan_applications.*', 'users.name']);
@@ -72,13 +105,15 @@ class AdminController extends Controller
             'total_savings' => $total_savings,
             'year_plan' => $year_plan,
             'year_savings' => $year_savings,
-            'ind_total_asset' => $ind_total_asset->total_savings,
+            'ind_total_asset' => $total_ind_asset,
             'ind_year_savings' => $ind_year_savings,
             'stake' => $stake,
             'total_liability' => $total_liability,
             'loans' => $loans,
             'years' => $years,
-            'deposits' => $deposits
+            'deposits' => $deposits,
+            'users' => $users,
+            'total_stake' => $total_stake
         );
         return view('admin.index', compact('dashboard_info'));
     }
@@ -138,15 +173,133 @@ class AdminController extends Controller
 
     public function GetUsers(){
         
-        $users = User::all();
+        $users = User::where('status', 'active')->get();
         $xy = 1;
 
         return view('admin.users_view', compact('users', 'xy'));
 
     }
     public function ViewUser(Request $request){
+        $en_close = "";
+        $year_plan = YearPlan::where('status', 'open')->first();
+        if($year_plan == null){
+             $notification = array(
+            'message' => 'You must open a year to complete any transaction',
+            'alert-type' => 'error'
+        );
+
+        return redirect()->back()->with($notification);
+
+        }
         $profileData = User::find($request->id);
-        return view('admin.users.user_profile_view', compact('profileData'));
+        $total_savings = Account::where('user_id', $request->id)->first();
+        $total_year_savings = Deposit::where('year_id', $year_plan->id)->where('user_id', $request->id)->sum('amount');
+        $total_group_year_savings = Deposit::where('year_id', $year_plan->id)->sum('amount');
+
+        $total_outstanding_loan = LoanApplication::where('user_id', $request->id)->where('application_status', 'open')->sum('balance');
+
+        $total_external_loan_outstanding = ExternalLoan::where('user_id', $request->id)->sum('balance');
+
+
+        if($total_group_year_savings != 0){
+             $interest_stake = 100/$total_group_year_savings * $total_year_savings;
+        }else{
+             $interest_stake = 0; 
+        }
+        if($interest_stake != 0){
+            $interest_due = $interest_stake/100 * $year_plan->year_interest;
+        }else{
+            $interest_due = 0;
+        }
+
+       
+        
+        $users = User::where('status', 'active')->count();
+
+        $total_group_liability = DB::table('liabilities')->where('year_id', $year_plan->id)->sum('cost');
+        $liability_due = $total_group_liability/$users;
+
+        $closing_balance = ($total_savings->total_savings + $interest_due) - ($total_outstanding_loan + $total_external_loan_outstanding + $liability_due);
+
+        if($closing_balance >0){
+            $en_close = "";
+        }else{
+            $en_close = "disabled";
+        }
+
+        $account_details = array(
+            'en_close' => $en_close,
+            'total_savings' => $total_savings->total_savings,
+            'total_year_savings' =>$total_year_savings,
+            'total_outstanding_loan' => $total_outstanding_loan,
+            'total_external_loan_outstanding' => $total_external_loan_outstanding,
+            'interest_stake' => $interest_stake,
+            'interest_due' => $interest_due,
+            'liability_due' => $liability_due,
+            'closing_balance' => $closing_balance
+
+        );
+
+        return view('admin.users.user_profile_view', compact('profileData', 'account_details'));
+    }
+
+    public function DisableUser(Request $request){
+        $year_plan = YearPlan::where('status', 'open')->first();
+        $id = $request->user_id;
+        $user = User::where('id', $id)->first();
+        $account = Account::where('user_id', $id)->first();
+        $loans = LoanApplication::where('application_status', 'open')->where('user_id', $id)->get();
+        $external_loans = ExternalLoan::where('user_id', $id)->where('application_status', 'open')->get();
+        $sum = 0;
+        $account->total_savings = 0;
+        $user->status = 'inactive';
+
+        $staget_account = StagetAccount::where('year_id', $year_plan->id)->first();
+        $staget_account->total_asset = $staget_account->total_asset - $request->closing_balance;
+        $staget_account->save();
+
+
+        foreach($loans as $loan){            
+            $repayment = array(
+                'loan_id' => $loan->id,
+                'amount' => $loan->balance,
+                'year_id' => $year_plan->id
+
+            );
+            DB::table('loan_repayments')->insert($repayment);
+
+            $loan->balance = 0;
+            $loan->application_status = 'close';
+            $loan->save();
+
+        }
+
+        foreach($external_loans as $loan){            
+            $repayment = array(
+                'loan_id' => $loan->id,
+                'amount' => $loan->balance,
+                'year_id' => $year_plan->id
+
+            );
+            DB::table('loan_repayments')->insert($repayment);
+
+            $loan->balance = 0;
+            $loan->application_status = 'close';
+            $loan->save();
+            
+        }
+
+        if($account->save() && $user->save()){
+            $notification = array(
+            'message' => "User diactivated successfully",
+            'alert-type' => 'success'
+        );
+
+        return redirect()->route('admin.dashboard')->with($notification);
+
+        }
+        
+
     }
 
     public function AdminChangePassword(){
@@ -197,15 +350,32 @@ class AdminController extends Controller
         return view('admin.config.admin_open_year');        
     }
     public function OpenYear(Request $request){
+        $last_year = YearPlan::latest()->first();
+        if($last_year = null){
+            $balance = StagetAccount::where('year_id', $last_year->id)->first();
+            $bbf = $balance->total_asset;
+        }else{
+            $bbf = 0.00;
+        }
+        
         $year = new YearPlan();
         $year->year = Date('Y');
         $year->min_savings = $request->min_savings;
         $year->loan_percentage = $request->loan_percentage;
         $year->interest_rate = $request->interest_rate;
         $year->interest_type = $request->interest_type;
+        $year->external_interest = $request->external_interest;
+        $year->external_commission = $request->external_commission;
 
         $year->save();
 
+        $staget_account = new StagetAccount();
+        $staget_account->year_id = $year->id;
+        $staget_account->total_asset = $bbf;
+
+        $staget_account->save();
+
+        
         $notification = array(
             'message' => "Year openned successfully",
             'alert-type' => 'success'

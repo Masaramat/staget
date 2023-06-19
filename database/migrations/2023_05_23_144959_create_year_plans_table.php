@@ -18,6 +18,8 @@ return new class extends Migration
             $table->float('year_interest');
             $table->integer('loan_percentage');
             $table->tinyInteger('interest_rate');
+            $table->tinyInteger('external_interest');
+            $table->tinyInteger('external_commission');
             $table->enum('interest_type', ['one_off', 'monthly'])->default('monthly');
             $table->string('status')->default('open');
             $table->timestamps();

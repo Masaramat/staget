@@ -118,7 +118,7 @@
                   </a>
                 </div>
 								<div class="px-3 py-2 d-flex align-items-center justify-content-center border-top">
-									<a href="javascript:;">View all</a>
+									<a href="" data-bs-toggle="modal" data-bs-target="#messagesModal">View all</a>
 								</div>
 							</div>
 						</li>
@@ -231,3 +231,6 @@
 					</ul>
 				</div>
 			</nav>
+
+
+      

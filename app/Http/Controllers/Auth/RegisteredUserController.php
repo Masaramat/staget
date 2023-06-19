@@ -129,6 +129,7 @@ class RegisteredUserController extends Controller
 
     public function CreateThree(Request $request): RedirectResponse
     {
+        
 
         if($request->file('photo')){
             $file = $request->file('photo');
@@ -144,7 +145,6 @@ class RegisteredUserController extends Controller
             $file->move(public_path('uploads/user_images/signatures'), $filename_signature);
             
         }
-
         
         $user = $request->session()->get('user');
         $user->photo = $filename;
@@ -170,6 +170,47 @@ class RegisteredUserController extends Controller
          
          return back();
        
+
+    }
+
+    public function UpdateUser(Request $request){
+        $user = User::where('id', $request->id);
+         $validateData = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
+            'username' => ['required', 'string'],
+            'address' => ['required', 'string'],
+            'phone' => ['required', 'string']                   
+        ]);
+
+        $user->fill($validateData);
+
+        if($request->file('photo')){
+            $file = $request->file('photo');
+            $filename = date('YmdHi').$file->getClientOriginalName();
+            $file->move(public_path('uploads/user_images/passports'), $filename);            
+        }
+
+        if($request->file('signature')){
+            $file = $request->file('signature');
+            $filename_signature = date('YmdHi').$file->getClientOriginalName();
+            $file->move(public_path('uploads/user_images/signatures'), $filename_signature);
+            
+        }
+
+        $user->photo = $filename;
+        $user->signature = $filename_signature;
+
+        $account = Account::where('user_id', $request->id);
+        $account->monthly_savings = $request->monthly_savings;
+
+        if($user->save() && $account->save()){
+             $notification = array(
+                'message' => "New user added successfully",
+                'alert-type' => 'success'
+            );
+            return view('admin.dashboard')->with($notification);
+        }
 
     }
 
