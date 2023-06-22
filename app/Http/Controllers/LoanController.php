@@ -38,7 +38,12 @@ class LoanController extends Controller
 
             return back()->with($notification);
         }
-        return view('admin.loan_application', compact('year_plan', 'account'));
+        if(Auth::user()->role == 'admin'){
+            return view('admin.loan_application', compact('year_plan', 'account'));
+        }else if(Auth::user()->role == 'member'){
+            return view('member.loan_application', compact('year_plan', 'account'));
+        }
+        
 
     }
 
@@ -71,8 +76,14 @@ class LoanController extends Controller
                 'alert-type' => 'error'
             );
         }
+
+        if(Auth::user()->role == 'admin'){
+           return redirect()->route('admin.dashboard')->with($notification);
+        }else if(Auth::user()->role == 'member'){
+           return redirect()->route('member.dashboard')->with($notification);
+        }
         
-        return redirect()->route('admin.dashboard')->with($notification);
+        
         
     }
     public function ApproveLoan(){
@@ -80,7 +91,8 @@ class LoanController extends Controller
         $loans = DB::table('loan_applications')
             ->join('users', function(JoinClause $joinClause){
                 $joinClause->on('users.id', '=', 'loan_applications.user_id')
-                    ->where('loan_applications.application_status', '=', 'pending');
+                    ->where('loan_applications.application_status', '=', 'pending')
+                    ->where('loan_applications.loan_type', 'internal');
             })
             ->select('loan_applications.*', 'users.name')
             ->get();
@@ -167,6 +179,7 @@ class LoanController extends Controller
         ->join('users', function ($join) {
             $join->on('users.id', '=', 'loan_applications.user_id')
                 ->where('loan_applications.application_status', 'open')
+                ->where('loan_applications.loan_type', 'internal')
                 ->where(function ($query) {
                     $query->where('loan_applications.repayment_type', 'flat')
                         ->orWhere('loan_applications.repayment_type', 'flat upfront interest')
@@ -216,22 +229,30 @@ class LoanController extends Controller
         $loans = session()->pull('loan_details', []); // Second argument is a default value  
         $removed_loans = session()->pull('removed_loans', []); 
         // fix me first
-        foreach($removed_loans as $removed_loan){
-            $loan_year_plan = YearPlan::where('id', $removed_loan->year_id);
-            if($loan_year_plan->interest_type == 'monthly'){
-                $loan_removed = LoanApplication::where('id', $removed_loan->id)->first();
-                $loan_removed->tenor = $loan_removed->tenor + 1;
-                $loan_removed->balance = $loan_removed->balance + $loan_removed->amount_approved * ($loan_year_plan->interest_rate/100);
-                $loan_removed->save();
-            }
-        }
+        // foreach($removed_loans as $removed_loan){
+        //     $loan_year_plan = YearPlan::where('id', $removed_loan->year_id);
+        //     if($loan_year_plan->interest_type == 'monthly'){
+        //         $loan_removed = LoanApplication::where('id', $removed_loan->id)->first();
+        //         $loan_removed->tenor = $loan_removed->tenor + 1;
+        //         $loan_removed->balance = $loan_removed->balance + $loan_removed->amount_approved * ($loan_year_plan->interest_rate/100);
+        //         $loan_removed->save();
+        //     }
+        // }
         
                
         $year_plan = YearPlan::where('status', '=', 'open')->first();
         foreach ($loans as $loan) {
             $user_loan = LoanApplication::where('id', '=', $loan->id)->first(); // Use "first()" instead of "find()" to retrieve a single instance
+             $loan_year = YearPlan::where('id', $user_loan->year_id)->first();
             
-            $user_loan->balance = $user_loan->balance - $loan->installments;            
+            $user_loan->balance = $user_loan->balance - $loan->installments;
+            
+            if($user_loan->repayment_type === "flat" || $user_loan->repayment_type === "balloon") {
+                $interest = $user_loan->amount_approved * ($loan_year->interest_rate/100);
+                $user_loan->interest_paid = $user_loan->interest_paid + $interest;
+                $year_plan->year_interest = $year_plan->year_interest + $interest;
+                $year_plan->save();                
+            }
             $repayment = array(
                 'loan_id' => $loan->id,
                 'amount' => $loan->installments,

@@ -3,9 +3,7 @@
 @section('admin')
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 
-	<div class="page-content">
-
-       
+	<div class="page-content">       
         <div class="row profile-body">
          <!-- left wrapper start -->
           <div class="d-none d-md-block col-md-4 col-xl-4 left-wrapper">
@@ -68,75 +66,45 @@
                <div class="card">
               		<div class="card-body">
 
-                <div class="d-flex justify-content-end">
-                  <button class="btn btn-primary mx-2">Update NOK</button>
-                  <button class="btn btn-primary mx-2">Update Official Info</button>
-                </div>
-                  
-						<h6 class="card-title">Update User Profile</h6>            
+						<h6 class="card-title">Update Admin Profile</h6>
 
-						<form class="forms-sample" method="POST" action="{{ route('admin.user.update') }}" enctype="multipart/form-data">
-
+						<form class="forms-sample" method="POST" action="{{ route('admin.user.update_user') }}" enctype="multipart/form-data">
               @csrf
-              <div class="row">
-                <div class="mb-3 col-lg-4">
-                  <label for="username" class="form-label text-muted">Username</label>
-                  <input type="text" name="username" class="form-control" id="username" autocomplete="off" value="{{ $profileData->username }}">
-                </div>
-                <div class="mb-3 col-lg-8">
-                  <label for="name" class="form-label text-muted">Name</label>
-                  <input type="text" name="name" class="form-control" id="name" autocomplete="off" value="{{ $profileData->name }}">
-                </div>
-              </div>
-							
-              <div class="row">
-                <div class="mb-3 col-lg-6">
-                  <label for="email" class="form-label text-muted">Email</label>
-                  <input type="email" name="email" class="form-control" id="email" autocomplete="off" value="{{ $profileData->email }}">
-                </div>
-                <div class="mb-3 col-lg-6">
-                  <label for="phone" class="form-label text-muted">Phone</label>
-                  <input type="phone" name="phone" class="form-control" id="phone" autocomplete="off" value="{{ $profileData->phone }}">
-                </div>
-                
-              </div>
-              
+							<div class="mb-3">
+								<label for="username" class="form-label">Username</label>
+								<input type="text" name="username" class="form-control" id="username" autocomplete="off" value="{{ $profileData->username }}">
+							</div>
+							<div class="mb-3">
+								<label for="name" class="form-label">Name</label>
+								<input type="text" name="name" class="form-control" id="name" autocomplete="off" value="{{ $profileData->name }}">
+							</div>
               <div class="mb-3">
-                <label for="address" class="form-label text-muted">Address</label>
-                <input type="text" name="address" class="form-control" id="name" autocomplete="off" value="{{ $profileData->address }}">
-              </div> 
-              <div class="row">
-                <div class="mb-3 col-lg-8">
-                  <label for="photo" class="form-label text-muted">Photo</label>
-                  <input type="file" value="{{$profileData->photo}}" name="photo" class="form-control" id="image">
-                </div>
-
-                <div class="mb-3 mt-3 col-lg-4">
-                  <label for="photo" class="form-label text-muted"></label>
-                  <img class="wd-80 rounded-circle" id="showImage" src="{{ !empty($profileData->photo) ? url('uploads/user_images/passports/'.$profileData->photo) : url('uploads/no_image.jpg') }}" alt="profile">
-                </div>
+                <label for="email" class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" id="email" autocomplete="off" value="{{ $profileData->email }}">
               </div>
-              <div class="row">
-                <div class="mb-3 col-lg-8">
-                  <label for="photo" class="form-label text-muted">Signature</label>
-                  <input type="file" name="signature" class="form-control" id="signature" value="{{$profileData->signature}}">
-                </div>
+              <div class="mb-3">
+                <label for="phone" class="form-label">Phone</label>
+                <input type="phone" name="phone" class="form-control" id="phone" autocomplete="off" value="{{ $profileData->phone }}">
+              </div>
+              <div class="mb-3">
+                <label for="address" class="form-label">Address</label>
+                <input type="text" name="address" class="form-control" id="name" autocomplete="off" value="{{ $profileData->address }}">
+              </div>              
 
-                <div class="mb-3 mt-3 col-lg-4">
-                  <label for="photo" class="form-label text-muted"></label>
-                  <img class="wd-80 rounded-circle" id="showSignature" src="{{ !empty($profileData->photo) ? url('uploads/user_images/signatures/'.$profileData->signature) : url('uploads/no_image.jpg') }}" alt="profile">
-                </div>
-              </div>  
-              <div class="row">
-                <div class="mb-3 col-lg-8">
-                  <label for="photo" class="form-label text-muted">Monthly deposit</label>
-                  <input type="test" value="{{App\Models\Account::where('user_id', $profileData->id)->first()->monthly_savings}}" name="monthly_deposit" class="form-control" id="monthly_deposit">
-                </div>
+              <div class="mb-3">
+                <label for="photo" class="form-label">Photo</label>
+                <input type="file" name="photo" class="form-control" id="image">
+              </div>
 
-              </div> 
-              <input type="hidden" name="id" value="{{$profileData->id}}">
+              <div class="mb-3">
+                <label for="photo" class="form-label"></label>
+                 <img class="wd-80 rounded-circle" id="showImage" src="{{ !empty($profileData->photo) ? url('uploads/admin_images/'.$profileData->photo) : url('uploads/no_image.jpg') }}" alt="profile">
+              </div>
+
+             
 							
-							<button type="submit" class="btn btn-primary me-2">Save Changes</button>
+							
+							<button type="submit" name="update" class="btn btn-primary me-2">Save Changes</button>
 							
 						</form>
 
@@ -147,6 +115,7 @@
             </div>
           </div>
           <!-- middle wrapper end -->
+          
           
         </div>
 

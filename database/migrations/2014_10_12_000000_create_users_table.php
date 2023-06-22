@@ -39,7 +39,7 @@ return new class extends Migration
 
 
             // account control and access
-            $table->enum('role', ["admin", "secretary", "financial secretary", "patron", "member", "chairman"])->default("member");
+            $table->enum('role', ["admin",  "secretary", "coordinator", "patron", "member", "treasurer"])->default("member");
             $table->enum('status', ["active", "inactive"])->default("active");            
             $table->string('password');
             $table->rememberToken();

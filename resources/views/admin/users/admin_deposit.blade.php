@@ -23,13 +23,14 @@
                           <div class="card-body">
                           
                             <div class="table-responsive">
-                              <table class="table table-hover mb-0">
+                              <table class="table table-hover mb-0 display nowrap" id="payersTable">
                                 <thead>
                                   <tr>
                                     <th class="pt-0">#</th>
                                     <th class="pt-0">Name</th>
                                     <th class="pt-0">Total savigs</th>
                                     <th class="pt-0">Amount</th>
+                                    <th class="pt-0">Options</th>
                                     
                                   </tr>
                                 </thead>
@@ -89,7 +90,17 @@
         }
         reader.readAsDataURL(e.target.files['0']);
       })
-    })
+    });
+
+    $(document).ready( function () {
+        $('#payersTable').DataTable({
+          dom: 'Bfrtip',
+          buttons: [
+              'csv', 'excel', 'pdf'
+          ]
+        });
+        
+    } );
   </script>
 
 @endsection

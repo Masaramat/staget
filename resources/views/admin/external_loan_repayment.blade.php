@@ -38,7 +38,7 @@
 
                       <tr>
                         <td class="border-bottom">{{ $xy++ }}</td>
-                        <td class="border-bottom">{{ $loan->applicant_name }}</td>
+                        <td class="border-bottom">{{ $loan->borrower_name }} </td>
                         <td class="border-bottom">{{ $loan->balance }}</td>
                         <td class="border-bottom">{{ $loan->year }}</td>
                         <td class="border-bottom">{{ $loan->installments }}</td>

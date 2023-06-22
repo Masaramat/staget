@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use App\Models\ExternalLoan;
+use App\Models\LoanApplication;
 use App\Models\StagetAccount;
 use App\Models\YearPlan;
 use Carbon\Carbon;
@@ -35,24 +36,30 @@ class ExternalLoanController extends Controller
 
     public function Apply(Request $request){
         $year_plan = YearPlan::where('status', '=', 'open')->first();
-        $account = Account::where('user_id', '=', $request->guarantor_id)->first();
+        $account = Account::where('user_id', $request->guarantor_id)->first();
         $maxValue = $account->total_savings * ($year_plan->loan_percentage/100);
-        $data = $request->validate([
-            'applicant_name' => 'string|required',
-            'applicant_bvn' => 'numeric|required|unique:external_loans',
+        $data = $request->validate([            
             'amount_applied' => 'numeric|max:'.$maxValue,
             'tenor' => 'required|string',
             'repayment_type' => 'required'
         ]);
 
-        $loanApplication = new ExternalLoan();
+        $loanApplication = new LoanApplication();
         $loanApplication->fill($data);
         $loanApplication->tenor_type = 'months';
         $loanApplication->year_id = $year_plan->id;
         $loanApplication->user_id = $account->user_id;
+        $loanApplication->loan_type = 'external';
 
+        $loanApplication->save();
+        $external_loan_details =  array(
+            'borrower_name' => $request->applicant_name,
+            'borrower_bvn' =>$request->applicant_bvn,
+            'borrower_phone' =>$request->applicant_phone,
+            'loan_id' =>$loanApplication->id
+        );
         ;
-        if($loanApplication->save()){
+        if(DB::table('external_borrowers')->insert($external_loan_details)){
              $notification = array(
                 'message' => 'Loan application sccessful!',
                 'alert-type' => 'success'
@@ -70,12 +77,15 @@ class ExternalLoanController extends Controller
 
     public function OpenApproval(){
         $year_plan = YearPlan::where('status', '=', 'open')->first();
-        $loans = DB::table('external_loans')
+        $loans = DB::table('loan_applications')
             ->join('users', function(JoinClause $joinClause){
-                $joinClause->on('users.id', '=', 'external_loans.user_id')
-                    ->where('external_loans.application_status', '=', 'pending');
+                $joinClause->on('users.id', '=', 'loan_applications.user_id')
+                    ->where('loan_applications.application_status', 'pending')
+                    ->where('loan_applications.loan_type', 'external');
+            })->join('external_borrowers', function(JoinClause $joinClause){
+                $joinClause->on('external_borrowers.loan_id', '=', 'loan_applications.id');
             })
-            ->select('external_loans.*', 'users.name')
+            ->select('loan_applications.*', 'users.name', 'external_borrowers.borrower_name', 'external_borrowers.borrower_bvn', 'external_borrowers.borrower_phone')
             ->get();
         if($year_plan === null){
              $notification = array(
@@ -91,7 +101,7 @@ class ExternalLoanController extends Controller
     }
 
     public function ApproveLoan(Request $request){
-        $loan = ExternalLoan::where('id', '=', $request->id)->first();
+        $loan = LoanApplication::where('id', '=', $request->id)->first();
         $year_plan = YearPlan::where('status', '=', 'open')->first();
 
         if($request->has('approve')){            
@@ -162,22 +172,26 @@ class ExternalLoanController extends Controller
     }
 
     public function Repayment(){
-        $loans = DB::table('external_loans')
+        $loans = DB::table('loan_applications')
         ->join('users', function ($join) {
-            $join->on('users.id', '=', 'external_loans.user_id')
-                ->where('external_loans.application_status', 'open')
+            $join->on('users.id', '=', 'loan_applications.user_id')
+                ->where('loan_applications.application_status', 'open')
+                ->where('loan_applications.loan_type', 'external')
                 ->where(function ($query) {
-                    $query->where('external_loans.repayment_type', 'flat')
-                        ->orWhere('external_loans.repayment_type', 'flat upfront interest')
-                        ->orWhere('external_loans.repayment_type', 'balloon')
+                    $query->where('loan_applications.repayment_type', 'flat')
+                        ->orWhere('loan_applications.repayment_type', 'flat upfront interest')
+                        ->orWhere('loan_applications.repayment_type', 'balloon')
                         ->orWhere(function ($query) {
-                            $query->where('external_loans.repayment_type', 'balloon upfront interest')
-                                ->where('external_loans.maturity', '<=', Carbon::now());
+                            $query->where('loan_applications.repayment_type', 'balloon upfront interest')
+                                ->where('loan_applications.maturity', '<=', Carbon::now());
                         });
                 });
-        })    
-        ->join('year_plans', 'year_plans.id', '=', 'external_loans.year_id')
-        ->select('external_loans.*', 'users.name', 'year_plans.year')
+        }) 
+        ->join('external_borrowers', function ($join) {
+            $join->on('external_borrowers.loan_id', "loan_applications.id");
+        })   
+        ->join('year_plans', 'year_plans.id', '=', 'loan_applications.year_id')
+        ->select('loan_applications.*', 'users.name', 'year_plans.year', 'external_borrowers.borrower_name')
         ->get();
 
         $xy = 1;
@@ -200,7 +214,7 @@ class ExternalLoanController extends Controller
         foreach($removed_loans as $removed_loan){
             $loan_year_plan = YearPlan::where('id', $removed_loan->year_id);
             if($loan_year_plan->interest_type == 'monthly'){
-                $loan_removed = ExternalLoan::where('id', $removed_loan->id)->first();
+                $loan_removed = LoanApplication::where('id', $removed_loan->id)->first();
                 $loan_removed->tenor = $loan_removed->tenor + 1;
                 $loan_removed->balance = $loan_removed->balance + $loan_removed->amount_approved * ($loan_year_plan->interest_rate/100);
                 $loan_removed->save();
@@ -211,7 +225,7 @@ class ExternalLoanController extends Controller
         $year_plan = YearPlan::where('status', '=', 'open')->first();
         
         foreach ($loans as $loan) {
-            $user_loan = ExternalLoan::where('id', '=', $loan->id)->first(); // Use "first()" instead of "find()" to retrieve a single instance
+            $user_loan = LoanApplication::where('id', $loan->id)->first(); // Use "first()" instead of "find()" to retrieve a single instance
             $loan_year = YearPlan::where('id', $user_loan->year_id)->first();
             $user_loan->balance = $user_loan->balance - $loan->installments;
             if($user_loan->repayment_type === "flat" || $user_loan->repayment_type === "balloon") {
@@ -219,6 +233,8 @@ class ExternalLoanController extends Controller
                 $commission = ($loan_year->external_commission/100) * $interest;
                 $user_loan->interest_paid = $user_loan->interest_paid + $interest - $commission;
                 $user_loan->commission_paid = $user_loan->commission_paid + $commission;
+                $year_plan->year_interest = $year_plan->year_interest + $user_loan->interest_paid;
+                $year_plan->save();
             }
             
             $repayment = array(
@@ -231,9 +247,9 @@ class ExternalLoanController extends Controller
 
             $user_loan->save();
 
-            $loan = ExternalLoan::where('id', '=', $loan->id)->first();
+            $loan = LoanApplication::where('id', '=', $loan->id)->first();
 
-            if($loan->balance <= 0){
+            if($loan->balance <= 10){
                 $loan->application_status = 'close';
                 $loan->save();
             }

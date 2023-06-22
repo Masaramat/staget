@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ExternalLoanController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\LoanController;
+use App\Http\Controllers\MemberController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,7 +76,11 @@ Route::middleware(['auth', 'role:admin'])->group(function(){
     // Admin users depodits
     Route::get('admin/user/deposit', [PaymentController::class, 'Deposit'])->name('admin.user.deposit');
     
-    Route::post('admin/user/update', [RegisteredUserController::class, 'UpdateUser'])->name('admin.user.update');
+    Route::post('admin/user/update_user', [RegisteredUserController::class, 'UpdateUser'])->name('admin.user.update_user');
+
+    Route::post('admin/user/single/deposit', [PaymentController::class, 'SingleDeposit'])->name('admin.user.single.deposit');
+
+    
 
     Route::post('admin/user/remove_payer', [PaymentController::class, 'RemoveUserPayment'])->name('admin.user.remove_payer');
 
@@ -126,12 +131,20 @@ Route::middleware(['auth', 'role:agent'])->group(function(){
     Route::get('/agent/dashboard', [AgentController::class, 'AgentDashboard'])->name('agent.dashboard');
 });//End Agent route group
 
+Route::middleware(['auth', 'role:member'])->group(function(){
+    Route::get('/member/dashboard', [MemberController::class, 'MemberDashboard'])->name('member.dashboard');
+});
+
+Route::middleware(['auth'])->group(function(){
+    Route::get('/loan/apply', [LoanController::class, 'LoanApplication'])->name('loan.apply');
+
+    Route::post('/loan/finish_application', [LoanController::class, 'ApplyLoan'])->name('loan.finish_application');
+});
+
 //Admin login
 Route::get('/admin/login', [AdminController::class, 'AdminLogin'])->name('admin.login');
 
-Route::get('/loan/apply', [LoanController::class, 'LoanApplication'])->name('loan.apply');
 
-Route::post('/loan/finish_application', [LoanController::class, 'ApplyLoan'])->name('loan.finish_application');
 
 
 

@@ -16,6 +16,7 @@ return new class extends Migration
              $table->integer('user_id');
              $table->integer('year_id');
              $table->double('amount_applied');
+             $table->enum('loan_type', ['internal', ['external']])->default('internal');
              $table->double('amount_approved')->default(0.00);
              $table->double('balance')->default(0.00);
              $table->integer('tenor');

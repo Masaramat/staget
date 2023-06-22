@@ -188,29 +188,28 @@ class RegisteredUserController extends Controller
         if($request->file('photo')){
             $file = $request->file('photo');
             $filename = date('YmdHi').$file->getClientOriginalName();
-            $file->move(public_path('uploads/user_images/passports'), $filename);            
+            $file->move(public_path('uploads/user_images/passports'), $filename);  
+            $user->photo = $filename;          
         }
 
         if($request->file('signature')){
             $file = $request->file('signature');
             $filename_signature = date('YmdHi').$file->getClientOriginalName();
             $file->move(public_path('uploads/user_images/signatures'), $filename_signature);
-            
-        }
-
-        $user->photo = $filename;
-        $user->signature = $filename_signature;
+            $user->signature = $filename_signature;            
+        }     
+        
 
         $account = Account::where('user_id', $request->id);
         $account->monthly_savings = $request->monthly_savings;
+        $user->save();
+        $account->save();
 
-        if($user->save() && $account->save()){
-             $notification = array(
-                'message' => "New user added successfully",
-                'alert-type' => 'success'
-            );
-            return view('admin.dashboard')->with($notification);
-        }
+         $notification = array(
+            'message' => "New user added successfully",
+            'alert-type' => 'success'
+        );
+        return redirect()->route('admin.dashboard')->with($notification);
 
     }
 

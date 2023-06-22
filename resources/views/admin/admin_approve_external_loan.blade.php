@@ -44,7 +44,7 @@
 
                       <tr>
                         <td class="border-bottom">{{ $xy++ }}</td>
-                        <td class="border-bottom">{{ $loan->applicant_name }}</td>
+                        <td class="border-bottom">{{ $loan->borrower_name }}</td>
                         <td class="border-bottom">{{ $loan->name }}</td>
                         <td class="border-bottom">{{ $loan->repayment_type. ' '.' payment' }}</td>
                         <td class="border-bottom">{{ $loan->amount_applied }}</td>

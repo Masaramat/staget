@@ -8,7 +8,7 @@
 	<meta name="author" content="NobleUI">
 	<meta name="keywords" content="nobleui, bootstrap, bootstrap 5, bootstrap5, admin, dashboard, template, responsive, css, sass, html, theme, front-end, ui kit, web">
 
-	<title>Admin Panel - Adashe</title>
+	<title>Member Panel - staget</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,30 +36,26 @@
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <link rel="shortcut icon" href="{{ asset('backend/assets/images/favicon.png') }}" />
-
-  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-  <link rel="stylesheet" type="text/css" href="{{asset('backend/assets/css/demo2/custom_datatable_buttons.css')}}">
   
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" >
-  
 </head>
 <body>
 	<div class="main-wrapper">
 
 		<!-- partial:partials/_sidebar.html -->
-		@include('admin.body.sidebar')
+		@include('member.body.sidebar')
 		<!-- partial -->
 	
 		<div class="page-wrapper">
 					
 			<!-- partial:partials/_navbar.html -->
-			@include('admin.body.header')
+			@include('member.body.header')
 			<!-- partial -->
 
-			@yield('admin')
+			@yield('member')
 
 			<!-- partial:partials/_footer.html -->
-      @include('admin.body.footer')
+      @include('member.body.footer')
 			<!-- partial -->
 		
 		</div>
@@ -85,17 +81,8 @@
 	<!-- End custom js for this page -->
 
 
-  <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>   
+     
  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
- <script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"> </script>
- 
-  <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-
-   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-   <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script> 
-  <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
 
 <script>
  @if(Session::has('message'))

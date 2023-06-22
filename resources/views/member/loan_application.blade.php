@@ -1,6 +1,6 @@
-@extends('admin.admin_dashboard')
+@extends('member.member_dashboard')
 
-@section('admin')
+@section('member')
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 
 	<div class="page-content">
@@ -10,7 +10,7 @@
             <div class="card rounded">
               <div class="card-body">           
 
-                <form id="regForm" class="forms-sample" method="POST" action="{{ route('loan.external.apply') }}" enctype="multipart/form-data">
+                <form id="regForm" class="forms-sample" method="POST" action="{{ route('loan.finish_application') }}" enctype="multipart/form-data">
                 @csrf               
                 
                 <h6 class="card-title">Personal information</h6>
@@ -22,38 +22,20 @@
                             @endforeach
                         </ul>
                     </div>
-                @endif   
+                @endif                
                 
                 <div class="form-group mt-2">
-                    <label for="applicant_name" class="form-label text-muted">Applicant Name</label>
-                    <input oninput="this.className = 'form-control'" type="text" name="applicant_name" class="form-control" id="applicant_name" autocomplete="off" value="">
-                </div>
-                <div class="form-group mt-2">
-                    <label for="applicant_bvn" class="form-label text-muted">Applicant BVN</label>
-                    <input oninput="this.className = 'form-control'" type="text" name="applicant_bvn" class="form-control" id="applicant_bvn" autocomplete="off" value="">
-                </div>
-                <div class="form-group mt-2">
-                    <label for="applicant_phone" class="form-label text-muted">Applicant Phone</label>
-                    <input oninput="this.className = 'form-control'" type="text" name="applicant_phone" class="form-control" id="applicant_phone" autocomplete="off" value="">
-                </div>
-                <div class="form-group mt-2">
-                    <label for="guarantor_name" class="form-label text-muted">Guarantor Name</label>
-                    <input disabled oninput="this.className = 'form-control'" type="text" name="guarantor_name" class="form-control" id="guarantor_name" autocomplete="off" value="{{$account->name}}">
-                    <input type="hidden" name="guarantor_id" value="{{$account->user_id}}">
-                </div>
-                
-                <div class="form-group mt-2">
-                    <label for="amount_applied" class="form-label text-muted">Application amount</label>
+                    <label for="amount_applied" class="form-label">Application amount</label>
                     <input oninput="this.className = 'form-control'" type="text" name="amount_applied" class="form-control" id="amount_applied" autocomplete="off" value="">
                 </div>
                 <div class="row form-group mt-2">
                     <div class="row ">
                         <div class="col-md-2 form-group">
-                            <label for="tenor" class="form-label text-muted">Tenor</label>
+                            <label for="tenor" class="form-label">Tenor</label>
                             <input oninput="this.className = 'form-control'" type="text" name="tenor" class="form-control" id="tenor" autocomplete="off" value="">
                         </div>
                         <div class="col-md-10 form-group">
-                            <label for="tenor_type" class="form-label text-muted">Tenor Type</label>
+                            <label for="tenor_type" class="form-label">Tenor Type</label>
                             <select disabled   name="tenor_type" class="form-control text-dark form-select" id="tenor_type" >
                                 <option selected value="months">Months</option>
                             </select>
@@ -90,6 +72,7 @@
               <div class="col-md-12 grid-margin">
                <div class="card">
               		<div class="card-body">
+
 						<h6 class="card-title">Loan summary</h6>
                          <div>
                             <ul>

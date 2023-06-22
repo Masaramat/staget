@@ -90,10 +90,10 @@
                     <option value="">Select role</option>
                     <option value="admin">admin</option>
                     <option value="secretary">secretary</option>
-                    <option value="financial secretary">financial secretary</option>
+                    <option value="treasurer">treasurer</option>
                     <option value="patron">patron</option>
                     <option value="member">member</option>
-                    <option value="chairman">chairman</option>
+                    <option value="coordinator">coordinator</option>
                   </select>
                 </div>
                 <div class="col-xl-4 col-md-12">

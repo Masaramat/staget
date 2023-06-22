@@ -99,5 +99,36 @@ class PaymentController extends Controller
 
     }
 
+    public function SingleDeposit(Request $request){
+
+        $year_plan = YearPlan::where('status', '=', 'open')->first();
+        if($year_plan == null){
+             $notification = array(
+                'message' => 'You do not have an oppened year!',
+                'alert-type' => 'error'
+            );
+
+        return back()->with($notification);
+        }
+        $account = Account::where('user_id', $request->id)->first();
+        $account->total_savings = $account->total_savings + $request->amount;
+
+        $staget_account = StagetAccount::where('year_id', $year_plan->id)->first();
+        $staget_account->total_asset = $staget_account->total_asset + $request->amount;
+
+        $deposit = new Deposit();
+        $deposit->user_id = $request->id;
+        $deposit->amount = $request->amount;
+        $deposit->year_id = $year_plan->id;
+
+        if($account->save() && $staget_account->save() && $deposit->save()){
+            $notification = array(
+                'message' => 'Deposit successful!',
+                'alert-type' => 'success'
+            );
+            return back()->with($notification);
+        }
+    }
+
     
 }
