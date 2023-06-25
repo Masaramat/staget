@@ -251,6 +251,7 @@ class ExternalLoanController extends Controller
 
             if($loan->balance <= 10){
                 $loan->application_status = 'close';
+                $loan->balance = 0;
                 $loan->save();
             }
 

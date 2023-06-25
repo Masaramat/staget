@@ -9,6 +9,7 @@ use App\Http\Controllers\ExternalLoanController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\MessageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -137,6 +138,7 @@ Route::middleware(['auth', 'role:member'])->group(function(){
 
 Route::middleware(['auth'])->group(function(){
     Route::get('/loan/apply', [LoanController::class, 'LoanApplication'])->name('loan.apply');
+    
 
     Route::post('/loan/finish_application', [LoanController::class, 'ApplyLoan'])->name('loan.finish_application');
 });
